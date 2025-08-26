@@ -9,5 +9,5 @@ public interface IStorageService {
 
     void store(MultipartFile file);
 
-    ResponseEntity<Resource> download(String filename, HttpServletRequest request);
+    ResponseEntity<Resource> download(String filename);
 }

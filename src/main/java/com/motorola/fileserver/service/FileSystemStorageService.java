@@ -4,7 +4,6 @@ import com.motorola.fileserver.config.StorageProperties;
 import com.motorola.fileserver.exception.DownloadException;
 import com.motorola.fileserver.exception.StorageException;
 import com.motorola.fileserver.util.FileValidator;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,7 +34,6 @@ public class FileSystemStorageService implements IStorageService {
 
     @Autowired
     public FileSystemStorageService(StorageProperties properties) {
-
         String defaultLocation = properties.getLocation();
 
         if (defaultLocation.trim().isBlank()) {
@@ -84,11 +83,10 @@ public class FileSystemStorageService implements IStorageService {
      * download as per the content-disposition=attachment header
      *
      * @param filename String representing the name of the file to be downloaded
-     * @param request  Contains the servlet context which can be used to determine the MIME type of the file
      * @return a response entity wrapper containing the file (resource) to be downloaded
      */
     @Override
-    public ResponseEntity<Resource> download(String filename, HttpServletRequest request) {
+    public ResponseEntity<Resource> download(String filename) {
 
         try {
             FileValidator.validateFilename(filename);
@@ -99,7 +97,7 @@ public class FileSystemStorageService implements IStorageService {
                 throw new DownloadException("File " + filename + " does not exist.");
             }
 
-            String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+            String contentType = Files.probeContentType(resource.getFile().toPath());
 
             if (contentType == null) {
                 LOGGER.info("Unable to determine MIME type - setting default content-type");
@@ -112,6 +110,8 @@ public class FileSystemStorageService implements IStorageService {
                             resource.getFilename() + "\"")
                     .body(resource);
 
+        } catch (MalformedURLException e) {
+            throw new DownloadException("Filename provided cannot be found.", e);
         } catch (IOException e) {
             throw new DownloadException("Unable to download file.", e);
         }

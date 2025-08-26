@@ -53,7 +53,7 @@ public class ManageFileControllerTests {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         Resource mockResult = new UrlResource(Paths.get(filename).normalize().toAbsolutePath().toUri());
-        when(storageService.download(filename, request)).thenReturn(ResponseEntity.ok(mockResult));
+        when(storageService.download(filename)).thenReturn(ResponseEntity.ok(mockResult));
 
         this.mvc.perform(get("/download/" + filename))
                 .andExpect(status().isOk());
@@ -63,7 +63,7 @@ public class ManageFileControllerTests {
     public void testDeleteFile_fileNotFound() throws Exception {
         String filename = "invalid_file.csv";
 
-        when(storageService.download(Mockito.any(), Mockito.any()))
+        when(storageService.download(Mockito.any()))
                 .thenThrow(new DownloadException("File " + filename + " does not exist."));
 
         this.mvc.perform(get("/download/" + filename))
@@ -74,7 +74,7 @@ public class ManageFileControllerTests {
     public void testDeleteFile_internalServerError() throws Exception {
         String filename = " ";
 
-        when(storageService.download(Mockito.any(), Mockito.any()))
+        when(storageService.download(Mockito.any()))
                 .thenThrow(new FileValidationException("Invalid filename"));
 
         this.mvc.perform(get("/download/" + filename))

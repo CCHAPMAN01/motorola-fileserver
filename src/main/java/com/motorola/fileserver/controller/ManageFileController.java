@@ -54,11 +54,11 @@ public class ManageFileController {
      * @param filename String representing the name of the file to be downloaded - includes regex to allow for '.' chars
      */
     @GetMapping("/download/{filename:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable @Nonnull String filename, HttpServletRequest request) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable @Nonnull String filename) {
         LOGGER.trace("Enter downloadFile");
 
         try {
-            return storageService.download(filename, request);
+            return storageService.download(filename);
         } catch (DownloadException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (FileValidationException ex) {
