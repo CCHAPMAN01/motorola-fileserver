@@ -32,7 +32,7 @@ public class ManageFileController {
      *
      * @param file The file to be uploaded/stored
      */
-    @PostMapping("/")
+    @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") @Nonnull MultipartFile file) {
         LOGGER.trace("Enter uploadFile");
 

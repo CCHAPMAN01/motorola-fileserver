@@ -29,7 +29,7 @@ public class ManageFileControllerTests {
     public void testUploadFile_shouldSaveUploadedFile() throws Exception {
         MockMultipartFile multipartFile = new MockMultipartFile("file", "test.txt",
                 "text/plain", "Spring Framework".getBytes());
-        this.mvc.perform(multipart("/").file(multipartFile))
+        this.mvc.perform(multipart("/upload").file(multipartFile))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(containsString("Successfully uploaded: test.txt")));
 
