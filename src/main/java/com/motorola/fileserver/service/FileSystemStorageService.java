@@ -43,6 +43,10 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
+    /**
+     * Stores a multipart file to the root directory
+     * @param file MultipartFile received in the request. Must not be empty and must have a valid filename
+     */
     @Override
     public void store(MultipartFile file) {
         try {
@@ -50,6 +54,7 @@ public class FileSystemStorageService implements StorageService {
             String filename = getValidFileForUpload(file);
             LOGGER.debug("Filename to upload: {filename}");
 
+            // use .normalize() to sanitise the the filepath and avoid directory traversal attacks
             Path destinationFile = this.rootLocation.resolve(Paths.get(filename))
                     .normalize().toAbsolutePath();
             LOGGER.trace("Destination file absolute path: {destinationFile}");
@@ -74,6 +79,8 @@ public class FileSystemStorageService implements StorageService {
         if (filename == null || filename.isBlank()) {
             throw new StorageException("Invalid filename.");
         }
+
+        // additional validation checks could be implemented here for file type/size
 
         return filename;
     }
