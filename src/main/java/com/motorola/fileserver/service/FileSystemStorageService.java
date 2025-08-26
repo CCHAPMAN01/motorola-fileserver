@@ -22,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Store uploaded files in a simple directory structure on the server
@@ -119,8 +121,6 @@ public class FileSystemStorageService implements IStorageService {
         }
     }
 
-
-
     /**
      * Process the request to delete a given file by filename.
      *
@@ -137,6 +137,22 @@ public class FileSystemStorageService implements IStorageService {
 
         } catch (IOException e) {
             throw new StorageException("Unable to delete file", e);
+        }
+    }
+
+    /**
+     * List all file paths starting from the root directory
+     *
+     * @return a list of String representations of all file paths
+     */
+    @Override
+    public List<String> retrieveFilesList() {
+        Path root = this.rootLocation.normalize().toAbsolutePath();
+
+        try (Stream<Path> filesStream = Files.list(root)) {
+            return filesStream.map(file -> file.getFileName().toString()).toList();
+        } catch (IOException e) {
+            throw new StorageException("Unable to retrieve files list", e);
         }
     }
 

@@ -17,10 +17,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -157,14 +158,38 @@ public class FileSystemStorageServiceTests {
     }
 
     @Test
-    public void testDelete_fileNotFound() throws IOException {
+    public void testDelete_fileNotFound() {
         String filename = "test.txt";
 
         Path filepath = tempDir.resolve(filename);
 
         assertThat(Files.exists(filepath)).isFalse();
 
-        assertThatExceptionOfType(StorageException.class).isThrownBy(() ->  storageService.delete(filename));
+        assertThatExceptionOfType(StorageException.class).isThrownBy(() -> storageService.delete(filename));
+    }
+
+    @Test
+    public void testListFiles() throws IOException {
+        List<String> filenames = List.of("some_file.csv", "temp_pic.png", "test_file.txt");
+
+        for (String filename : filenames) {
+            Path filepath = tempDir.resolve(filename);
+            List<String> fileContent = List.of(filename.substring(0, filename.length() - 4));
+            Files.write(filepath, fileContent);
+
+            assertThat(Files.exists(filepath)).isTrue();
+        }
+
+        List<String> filesList = storageService.retrieveFilesList();
+
+        assertThat(filesList.size()).isEqualTo(filenames.size());
+        assertThat(filesList).isEqualTo(filenames);
+    }
+
+    @Test
+    public void testListFiles_noFiles() {
+        List<String> filesList = storageService.retrieveFilesList();
+        assertThat(filesList.size()).isEqualTo(0);
     }
 
 }

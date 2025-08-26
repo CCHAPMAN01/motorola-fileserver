@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * Exposes REST API endpoints/operations for managing files
  */
@@ -84,6 +86,22 @@ public class ManageFileController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (FileValidationException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+    }
+
+    /**
+     * List all files on the server
+     */
+    @GetMapping("/list")
+    public ResponseEntity<List<String>> ListFiles() {
+        LOGGER.trace("Enter ListFiles");
+
+        try {
+            List<String> filesList = storageService.retrieveFilesList();
+            return ResponseEntity.ok().body(filesList);
+        } catch (StorageException e) {
+            return ResponseEntity.internalServerError().build();
         }
 
     }

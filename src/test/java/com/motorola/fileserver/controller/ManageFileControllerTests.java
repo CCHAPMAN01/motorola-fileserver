@@ -15,6 +15,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -106,6 +109,27 @@ public class ManageFileControllerTests {
 
         this.mvc.perform(delete("/delete/" + filename))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testList_shouldListFiles() throws Exception {
+        List<String> filenames = List.of("test_file.txt", "some_file.csv", "temp_pic.png");
+
+        when(storageService.retrieveFilesList()).thenReturn(filenames);
+
+        this.mvc.perform(get("/list"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value("test_file.txt"))
+                .andExpect(jsonPath("$[1]").value("some_file.csv"))
+                .andExpect(jsonPath("$[2]").value("temp_pic.png"));
+    }
+
+    @Test
+    public void testList_storageException() throws Exception {
+        when(storageService.retrieveFilesList()).thenThrow(new StorageException("Unable to retrieve files list"));
+
+        this.mvc.perform(get("/list"))
+                .andExpect(status().isInternalServerError());
     }
 
 }
