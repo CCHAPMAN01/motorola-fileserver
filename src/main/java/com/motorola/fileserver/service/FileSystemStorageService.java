@@ -1,10 +1,17 @@
 package com.motorola.fileserver.service;
 
 import com.motorola.fileserver.config.StorageProperties;
+import com.motorola.fileserver.exception.DownloadException;
 import com.motorola.fileserver.exception.StorageException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -52,12 +59,12 @@ public class FileSystemStorageService implements StorageService {
         try {
 
             String filename = getValidFileForUpload(file);
-            LOGGER.debug("Filename to upload: {filename}");
+            LOGGER.debug("Filename to upload: " + filename);
 
             // use .normalize() to sanitise the the filepath and avoid directory traversal attacks
             Path destinationFile = this.rootLocation.resolve(Paths.get(filename))
                     .normalize().toAbsolutePath();
-            LOGGER.trace("Destination file absolute path: {destinationFile}");
+            LOGGER.trace("Destination file absolute path: " + destinationFile);
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.createDirectories(destinationFile.getParent());
@@ -69,6 +76,43 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
+    /**
+     * Process the request to download a given file by filename.
+     * Response content-type to be derived from the filename (if found) - otherwise defaults to
+     * "application/octet-stream" so the browser does not try to render or execute the file, instead prompts for
+     * download as per the content-disposition=attachment header
+     *
+     * @param filename String representing the name of the file to be downloaded
+     * @param request Contains the servlet context which can be used to determine the MIME type of the file
+     * @return a response entity wrapper containing the file (resource) to be downloaded
+     */
+    @Override
+    public ResponseEntity<Resource> download(String filename, HttpServletRequest request) {
+
+        try {
+            Path filePath = this.rootLocation.resolve(filename).normalize().toAbsolutePath();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists()) {
+                String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+
+                if (contentType == null) {
+                    LOGGER.info("Unable to determine MIME type - setting default content-type");
+                    contentType = "application/octet-stream";
+                }
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
+                                resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                throw new DownloadException("File " + filename + " does not exist.");
+            }
+        } catch (IOException e) {
+            throw new DownloadException("Unable to download file.", e);
+        }
+    }
+
     private String getValidFileForUpload(MultipartFile file) {
 
         if (file.isEmpty()) {
@@ -76,12 +120,16 @@ public class FileSystemStorageService implements StorageService {
         }
 
         String filename = file.getOriginalFilename();
-        if (filename == null || filename.isBlank()) {
-            throw new StorageException("Invalid filename.");
-        }
+        validateFilename(filename);
 
         // additional validation checks could be implemented here for file type/size
 
         return filename;
+    }
+
+    private void validateFilename(String filename) {
+        if (filename == null || filename.isBlank()) {
+            throw new StorageException("Invalid filename.");
+        }
     }
 }
