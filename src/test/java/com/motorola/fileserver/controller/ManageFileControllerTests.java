@@ -1,7 +1,7 @@
 package com.motorola.fileserver.controller;
 
 import com.motorola.fileserver.exception.DownloadException;
-import com.motorola.fileserver.service.StorageService;
+import com.motorola.fileserver.service.IStorageService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class ManageFileControllerTests {
     private MockMvc mvc;
 
     @MockitoBean
-    private StorageService storageService;
+    private IStorageService storageService;
 
     @Test
     public void testUploadFile_shouldSaveUploadedFile() throws Exception {

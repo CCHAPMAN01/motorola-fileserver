@@ -26,7 +26,7 @@ import java.nio.file.StandardCopyOption;
  * Store uploaded files in a simple directory structure on the server
  */
 @Service
-public class FileSystemStorageService implements StorageService {
+public class FileSystemStorageService implements IStorageService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemStorageService.class);
     private final Path rootLocation;

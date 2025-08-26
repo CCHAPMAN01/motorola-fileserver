@@ -1,7 +1,7 @@
 package com.motorola.fileserver.controller;
 
 import com.motorola.fileserver.exception.DownloadException;
-import com.motorola.fileserver.service.StorageService;
+import com.motorola.fileserver.service.IStorageService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -26,9 +26,9 @@ public class ManageFileController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ManageFileController.class);
 
     @Autowired
-    private final StorageService storageService;
+    private final IStorageService storageService;
 
-    public ManageFileController(StorageService storageService) {
+    public ManageFileController(IStorageService storageService) {
         this.storageService = storageService;
     }
 
