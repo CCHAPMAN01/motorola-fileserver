@@ -1,6 +1,7 @@
 package com.motorola.fileserver.service;
 
 import com.motorola.fileserver.config.StorageProperties;
+import com.motorola.fileserver.exception.FileValidationException;
 import com.motorola.fileserver.exception.StorageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,7 @@ public class FileSystemStorageServiceTests {
         when(file.isEmpty()).thenReturn(true);
 
         assertThatThrownBy(() -> storageService.store(file))
-                .isInstanceOf(StorageException.class)
+                .isInstanceOf(FileValidationException.class)
                 .hasMessageContaining("empty file");
     }
 
@@ -71,7 +72,7 @@ public class FileSystemStorageServiceTests {
         when(file.getOriginalFilename()).thenReturn(null);
 
         assertThatThrownBy(() -> storageService.store(file))
-                .isInstanceOf(StorageException.class)
+                .isInstanceOf(FileValidationException.class)
                 .hasMessageContaining("Invalid filename");
     }
 

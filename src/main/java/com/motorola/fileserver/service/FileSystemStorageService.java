@@ -3,6 +3,7 @@ package com.motorola.fileserver.service;
 import com.motorola.fileserver.config.StorageProperties;
 import com.motorola.fileserver.exception.DownloadException;
 import com.motorola.fileserver.exception.StorageException;
+import com.motorola.fileserver.util.FileValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,13 +53,13 @@ public class FileSystemStorageService implements IStorageService {
 
     /**
      * Stores a multipart file to the root directory
+     *
      * @param file MultipartFile received in the request. Must not be empty and must have a valid filename
      */
     @Override
     public void store(MultipartFile file) {
         try {
-
-            String filename = getValidFileForUpload(file);
+            String filename = FileValidator.getValidFileForUpload(file);
             LOGGER.debug("Filename to upload: " + filename);
 
             // use .normalize() to sanitise the the filepath and avoid directory traversal attacks
@@ -83,53 +84,36 @@ public class FileSystemStorageService implements IStorageService {
      * download as per the content-disposition=attachment header
      *
      * @param filename String representing the name of the file to be downloaded
-     * @param request Contains the servlet context which can be used to determine the MIME type of the file
+     * @param request  Contains the servlet context which can be used to determine the MIME type of the file
      * @return a response entity wrapper containing the file (resource) to be downloaded
      */
     @Override
     public ResponseEntity<Resource> download(String filename, HttpServletRequest request) {
 
         try {
+            FileValidator.validateFilename(filename);
             Path filePath = this.rootLocation.resolve(filename).normalize().toAbsolutePath();
             Resource resource = new UrlResource(filePath.toUri());
 
-            if (resource.exists()) {
-                String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-
-                if (contentType == null) {
-                    LOGGER.info("Unable to determine MIME type - setting default content-type");
-                    contentType = "application/octet-stream";
-                }
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
-                                resource.getFilename() + "\"")
-                        .body(resource);
-            } else {
+            if (!resource.exists()) {
                 throw new DownloadException("File " + filename + " does not exist.");
             }
+
+            String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+
+            if (contentType == null) {
+                LOGGER.info("Unable to determine MIME type - setting default content-type");
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
+                            resource.getFilename() + "\"")
+                    .body(resource);
+
         } catch (IOException e) {
             throw new DownloadException("Unable to download file.", e);
-        }
-    }
-
-    private String getValidFileForUpload(MultipartFile file) {
-
-        if (file.isEmpty()) {
-            throw new StorageException("Failed to store empty file.");
-        }
-
-        String filename = file.getOriginalFilename();
-        validateFilename(filename);
-
-        // additional validation checks could be implemented here for file type/size
-
-        return filename;
-    }
-
-    private void validateFilename(String filename) {
-        if (filename == null || filename.isBlank()) {
-            throw new StorageException("Invalid filename.");
         }
     }
 }

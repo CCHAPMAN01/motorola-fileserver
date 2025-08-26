@@ -1,6 +1,7 @@
 package com.motorola.fileserver.controller;
 
 import com.motorola.fileserver.exception.DownloadException;
+import com.motorola.fileserver.exception.FileValidationException;
 import com.motorola.fileserver.service.IStorageService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,7 +61,7 @@ public class ManageFileController {
             return storageService.download(filename, request);
         } catch (DownloadException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception ex) {
+        } catch (FileValidationException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 

@@ -1,6 +1,7 @@
 package com.motorola.fileserver.controller;
 
 import com.motorola.fileserver.exception.DownloadException;
+import com.motorola.fileserver.exception.FileValidationException;
 import com.motorola.fileserver.service.IStorageService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -71,10 +72,10 @@ public class ManageFileControllerTests {
 
     @Test
     public void testDeleteFile_internalServerError() throws Exception {
-        String filename = "invalid_file.png";
+        String filename = " ";
 
         when(storageService.download(Mockito.any(), Mockito.any()))
-                .thenThrow(new RuntimeException("Some unexpected exception"));
+                .thenThrow(new FileValidationException("Invalid filename"));
 
         this.mvc.perform(get("/download/" + filename))
                 .andExpect(status().isBadRequest());
