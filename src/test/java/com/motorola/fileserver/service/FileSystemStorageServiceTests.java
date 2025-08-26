@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -121,7 +122,7 @@ public class FileSystemStorageServiceTests {
 
         Path filepath = tempDir.resolve(filename);
         List<String> fileContent = List.of("Test file");
-        Files.write(filepath, List.of("Test file"));
+        Files.write(filepath, fileContent);
 
         ResponseEntity<Resource> response = storageService.download(filename);
         assertThat(response.getBody()).isNotNull();
@@ -138,6 +139,32 @@ public class FileSystemStorageServiceTests {
 
         assertThatExceptionOfType(DownloadException.class)
                 .isThrownBy(() -> storageService.download(filename));
+    }
+
+    @Test
+    public void testDeleteFile() throws IOException {
+        String filename = "test.txt";
+
+        Path filepath = tempDir.resolve(filename);
+        List<String> fileContent = List.of("Test file");
+        Files.write(filepath, fileContent);
+
+        assertThat(Files.exists(filepath)).isTrue();
+
+        storageService.delete(filename);
+
+        assertThat(Files.exists(filepath)).isFalse();
+    }
+
+    @Test
+    public void testDelete_fileNotFound() throws IOException {
+        String filename = "test.txt";
+
+        Path filepath = tempDir.resolve(filename);
+
+        assertThat(Files.exists(filepath)).isFalse();
+
+        assertThatExceptionOfType(StorageException.class).isThrownBy(() ->  storageService.delete(filename));
     }
 
 }

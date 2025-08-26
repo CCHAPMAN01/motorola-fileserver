@@ -90,6 +90,8 @@ public class FileSystemStorageService implements IStorageService {
 
         try {
             FileValidator.validateFilename(filename);
+            LOGGER.debug("Filename to download: " + filename);
+
             Path filePath = this.rootLocation.resolve(filename).normalize().toAbsolutePath();
             Resource resource = new UrlResource(filePath.toUri());
 
@@ -116,4 +118,26 @@ public class FileSystemStorageService implements IStorageService {
             throw new DownloadException("Unable to download file.", e);
         }
     }
+
+
+
+    /**
+     * Process the request to delete a given file by filename.
+     *
+     * @param filename String representing the name of the file to be deleted
+     */
+    @Override
+    public void delete(String filename) {
+        try {
+            FileValidator.validateFilename(filename);
+            LOGGER.debug("Filename to delete: " + filename);
+
+            Path filePath = this.rootLocation.resolve(filename).normalize().toAbsolutePath();
+            Files.delete(filePath);
+
+        } catch (IOException e) {
+            throw new StorageException("Unable to delete file", e);
+        }
+    }
+
 }
