@@ -45,10 +45,14 @@ public class ManageFileController {
     public ResponseEntity<String> uploadFile(@RequestParam("file") @Nonnull MultipartFile file) {
         LOGGER.trace("Enter uploadFile");
 
-        storageService.store(file);
+        try {
+            storageService.store(file);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Successfully uploaded: " + file.getOriginalFilename());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("Successfully uploaded: " + file.getOriginalFilename());
+        } catch (StorageException ex) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -98,8 +102,7 @@ public class ManageFileController {
         LOGGER.trace("Enter ListFiles");
 
         try {
-            List<String> filesList = storageService.retrieveFilesList();
-            return ResponseEntity.ok().body(filesList);
+            return ResponseEntity.ok().body(storageService.retrieveFilesList());
         } catch (StorageException e) {
             return ResponseEntity.internalServerError().build();
         }

@@ -70,8 +70,7 @@ public class FileSystemStorageService implements IStorageService {
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.createDirectories(destinationFile.getParent());
-                Files.copy(inputStream, destinationFile,
-                        StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             throw new StorageException("Failed to store file.", e);
