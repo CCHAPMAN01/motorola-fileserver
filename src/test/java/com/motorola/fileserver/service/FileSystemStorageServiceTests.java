@@ -44,7 +44,7 @@ public class FileSystemStorageServiceTests {
     }
 
     @Test
-    public void testStoreHappyPath() throws IOException {
+    public void testStoreFile() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.isEmpty()).thenReturn(false);
         when(file.getOriginalFilename()).thenReturn("test.txt");
